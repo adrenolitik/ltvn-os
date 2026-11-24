@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}{{ cycle.title }} — Frame OS{% endblock %}
+
+{% block page_title %}{{ cycle.title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="/cycles/{{ cycle.slug }}?action=edit" class="btn btn-secondary">Редактировать</a>
+<a href="/journal/new?cycle_slug={{ cycle.slug }}&week={{ cycle.week }}" class="btn btn-primary">Запись в журнал</a>
+{% if cycle.phase == "review" %}
+<button class="btn btn-ghost" hx-post="/reflect/cycle/{{ cycle.slug }}" hx-target="#toasts" hx-swap="beforeend">
+    ИИ-рефлексия цикла
+</button>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- Cycle Header -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-body">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;">
+            <div>
+                <h2 style="font-size: 1.5rem; margin-bottom: 4px;">{{ cycle.title }}</h2>
+                <div style="color: var(--fg-secondary);">Цикл №{{ cycle.number }} • {{ cycle.start_date }} — {{ cycle.end_date }}</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <span class="cycle-phase badge badge-{{ cycle.phase }}">{{ cycle.phase|capitalize }}</span>
+                <span style="color: var(--fg-secondary);">Неделя {{ cycle.week }} / 12</span>
+            </div>
+        </div>
+
+        <div class="cycle-header">
+            <div class="cycle-stat">
+                <div class="cycle-stat-label">Главная цель</div>
+                <div class="cycle-stat-value" style="font-size: 1rem; color: var(--fg-primary); white-space: normal;">{{ cycle.main_goal or 'Не задана' }}</div>
+            </div>
+            <div class="cycle-stat">
+                <div class="cycle-stat-label">Дополнительных направлений</div>
+                <div class="cycle-stat-value">{{ cycle.additional_goals|length }}</div>
+            </div>
+            <div class="cycle-stat">
+                <div class="cycle-stat-label">Гипотез</div>
+                <div class="cycle-stat-value">{{ cycle.hypotheses|length }}</div>
+            </div>
+            <div class="cycle-stat">
+                <div class="cycle-stat-label">Действий</div>
+                <div class="cycle-stat-value">{{ cycle.actions|length }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two columns -->
+<div style="display: grid; grid-template-columns: 1fr 350px; gap: 24px;">
+
+<!-- Main: Details + Actions + Journal -->
+<div>
+    <!-- Main Goal & Directions -->
+    {% if cycle.main_goal or cycle.additional_goals or cycle.hypotheses %}
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header"><span class="card-title">Стратегия цикла</span></div>
+        <div class="card-body">
+            {% if cycle.main_goal %}
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 0.75rem; color: var(--fg-secondary); text-transform: uppercase; margin-bottom: 8px;">Главная цель</div>
+                <p style="font-weight: 500;">{{ cycle.main_goal }}</p>
+            </div>
+            {% endif %}
+            {% if cycle.additional_goals %}
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 0.75rem; color: var(--fg-secondary); text-transform: uppercase; margin-bottom: 8px;">Дополнительные направления</div>
+                <ul style="display: flex; flex-direction: column; gap: 6px;">
+                    {% for g in cycle.additional_goals %}<li style="padding-left: 16px; position: relative;">{% if loop.first %}<span style="position: absolute; left: 0; color: var(--accent);">▸</span>{% endif %}{{ g }}</li>{% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% if cycle.hypotheses %}
+            <div>
+                <div style="font-size: 0.75rem; color: var(--fg-secondary); text-transform: uppercase; margin-bottom: 8px;">Гипотезы для проверки</div>
+                <ul style="display: flex; flex-direction: column; gap: 6px;">
+                    {% for h in cycle.hypotheses %}<li style="padding-left: 16px; position: relative;"><span style="position: absolute; left: 0; color: var(--warning);">◆</span>{{ h }}</li>{% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+            <span class="card-title">Действия цикла</span>
+            <span style="font-size: 0.75rem; color: var(--fg-muted);">{{ cycle.actions|length }} шт.</span>
+        </div>
+        <div class="card-body">
+            {% if cycle.actions %}
+            <ul style="display: flex; flex-direction: column; gap: 8px;">
+                {% for action in cycle.actions %}
+                <li style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: var(--radius);">
+                    <input type="checkbox" style="width: 20px; height: 20px; accent-color: var(--accent);">
+                    <span style="flex: 1;">{{ action }}</span>
+                    <span style="font-size: 0.7rem; color: var(--fg-muted);">{{ loop.index }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p style="color: var(--fg-muted); text-align: center; padding: 24px;">Действий пока нет. Добавь ниже.</p>
+            {% endif %}
+            
+            <form method="post" action="/cycles/{{ cycle.slug }}/action" style="margin-top: 16px; display: flex; gap: 8px;">
+                <input type="text" name="action" class="form-input" style="flex: 1;" placeholder="Новое действие..." required>
+                <button type="submit" class="btn btn-primary">Добавить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Journal Entries -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Журнал цикла</span>
+            <a href="/journal/new?cycle_slug={{ cycle.slug }}&week={{ cycle.week }}" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem;">+ Запись</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            {% if entries %}
+            {% for entry in entries %}
+            <div class="journal-entry" style="margin: 0; border-radius: 0; border-left: none; border-right: none; border-bottom: 1px solid var(--border);">
+                <div class="journal-header">
+                    <span class="journal-date">{{ entry.date }} (нед. {{ entry.week }})</span>
+                    <div class="journal-metrics">
+                        {% if entry.mood is not none %}<span>😊 {{ entry.mood }}/10</span>{% endif %}
+                        {% if entry.energy is not none %}<span>⚡ {{ entry.energy }}/10</span>{% endif %}
+                        {% if entry.focus is not none %}<span>🎯 {{ entry.focus }}/10</span>{% endif %}
+                    </div>
+                </div>
+                {% if entry.tags %}
+                <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
+                    {% for tag in entry.tags %}<span class="journal-tag">{{ tag }}</span>{% endfor %}
+                </div>
+                {% endif %}
+                <div class="journal-content">{{ entry.content or '—' }}</div>
+                {% if entry.week == cycle.week and cycle.phase == "review" %}
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                    <button class="btn btn-ghost" style="font-size: 0.8rem;" hx-post="/reflect/week/{{ cycle.slug }}/{{ entry.week }}" hx-target="#toasts" hx-swap="beforeend">ИИ-рефлексия недели</button>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="padding: 32px; text-align: center; color: var(--fg-muted);">
+                Записей пока нет. Начни вести журнал цикла.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Sidebar: Quick stats + linked tasks -->
+<div>
+    <div class="card" style="margin-bottom: 16px;">
+        <div class="card-header"><span class="card-title">Прогресс</span></div>
+        <div class="card-body">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 0.8rem; color: var(--fg-secondary);">Неделя</span>
+                        <span style="font-weight: 600;">{{ cycle.week }} / 12</span>
+                    </div>
+                    <div style="height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
+                        <div style="height: 100%; width: {{ (cycle.week / 12 * 100) | round }}%; background: var(--accent); border-radius: 4px; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 0.8rem; color: var(--fg-secondary);">Дней осталось</span>
+                        <span style="font-weight: 600; color: {% if (cycle.end_date | date_to_days) - (today | date_to_days) < 7 %}var(--danger){% elif (cycle.end_date | date_to_days) - (today | date_to_days) < 14 %}var(--warning){% else %}var(--success){% endif %};">{{ (cycle.end_date | date_to_days) - (today | date_to_days) if cycle.end_date else '—' }}</span>
+                    </div>
+                    <div style="height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
+                        <div style="height: 100%; width: {{ (1 - (cycle.week / 12)) * 100 | round }}%; background: var(--warning); border-radius: 4px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><span class="card-title">Быстрые действия</span></div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="/journal/new?cycle_slug={{ cycle.slug }}&week={{ cycle.week }}" class="btn btn-primary" style="justify-content: center;">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Дневник за эту неделю
+            </a>
+            <a href="/cycles" class="btn btn-secondary" style="justify-content: center;">Все циклы</a>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}

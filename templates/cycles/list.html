@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Циклы PABO — Frame OS{% endblock %}
+
+{% block page_title %}Циклы PABO{% endblock %}
+
+{% block topbar_actions %}
+<a href="/cycles/new" class="btn btn-primary">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Новый цикл
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        {% if cycles %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Название</th>
+                        <th>Период</th>
+                        <th>Фаза</th>
+                        <th>Неделя</th>
+                        <th>Главная цель</th>
+                        <th>Действий</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in cycles %}
+                    <tr>
+                        <td>{{ c.number }}</td>
+                        <td style="font-weight: 500;">{{ c.title }}</td>
+                        <td>{{ c.start_date }} → {{ c.end_date }}</td>
+                        <td><span class="badge badge-{{ c.phase }}">{{ c.phase|capitalize }}</span></td>
+                        <td>{{ c.week }} / 12</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c.main_goal or '—' }}</td>
+                        <td>{{ c.actions|length }}</td>
+                        <td>
+                            <a href="/cycles/{{ c.slug }}" class="btn btn-ghost" style="padding: 4px 8px; font-size: 0.8rem;">Открыть</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="padding: 48px; text-align: center;">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 16px; color: var(--fg-muted); width: 48px; height: 48px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <h3 style="margin-bottom: 8px;">Циклов пока нет</h3>
+            <p style="color: var(--fg-secondary); margin-bottom: 16px;">Создай свой первый 12-недельный цикл планирования</p>
+            <a href="/cycles/new" class="btn btn-primary">Создать цикл</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

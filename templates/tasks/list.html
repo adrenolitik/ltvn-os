@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Задачи (Todoist) — Frame OS{% endblock %}
+
+{% block page_title %}Задачи{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn btn-primary" hx-post="/tasks/sync" hx-target="#toasts" hx-swap="beforeend" hx-indicator=".htmx-indicator">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    Синхронизировать
+    <span class="htmx-indicator" style="margin-left: 8px;">⏳</span>
+</button>
+<a href="/cycles" class="btn btn-secondary">Циклы</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        {% if tasks %}
+        {% for task in tasks %}
+        <div class="task-row" style="margin: 0; border-radius: 0; border-left: none; border-right: none; {% if task.due and task.due.date < today and not task.completed %}border-left: 3px solid var(--danger);{% endif %}">
+            <input type="checkbox" class="task-checkbox" {% if task.completed %}checked{% endif %}
+                   hx-post="/tasks/{{ task._slug }}/toggle" hx-target="#toasts" hx-swap="beforeend">
+            <div class="task-content" style="flex: 1; min-width: 0;">
+                <div class="task-title {% if task.completed %}completed{% endif %}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ task.content }}</div>
+                <div class="task-meta">
+                    {% if task.project_id %}<span class="task-project">#{{ task.project_id[:12] }}</span>{% endif %}
+                    {% if task.due and task.due.date %}
+                    <span class="task-due {% if task.due.date < today %}overdue{% elif task.due.date == today %}today{% endif %}">
+                        📅 {{ task.due.date }}
+                    </span>
+                    {% endif %}
+                    {% if task.priority > 1 %}<span>⚡ P{{ task.priority }}</span>{% endif %}
+                    {% if task.labels %}<span style="color: var(--fg-muted); font-size: 0.7rem;">{{ task.labels|join(', ') }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div style="padding: 48px; text-align: center;">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 16px; color: var(--fg-muted); width: 48px; height: 48px;"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <h3 style="margin-bottom: 8px;">Задач нет</h3>
+            <p style="color: var(--fg-secondary); margin-bottom: 16px;">Синхронизируй с Todoist или создай задачи в Obsidian</p>
+            <button class="btn btn-primary" hx-post="/tasks/sync" hx-target="#toasts" hx-swap="beforeend">Синхронизировать</button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

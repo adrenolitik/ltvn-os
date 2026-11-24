@@ -1,0 +1,58 @@
+# Frame OS Configuration
+# Скопируй в config.local.yaml и заполни секреты
+
+app:
+  host: "127.0.0.1"
+  port: 8766
+  debug: true
+
+# Путь к Obsidian vault (исходник истины)
+obsidian:
+  vault_path: "C:/Users/79110/YandexDisk/1. Obsidian 2025/Third Brain/Hermes"
+  # Структура внутри vault:
+  structure:
+    goals: "FrameOS/Goals"           # Долгосрочные цели
+    cycles: "FrameOS/Cycles"         # PABO 12-недельные циклы
+    tasks: "FrameOS/Tasks"           # Операционные задачи (mirror Todoist)
+    journal: "FrameOS/Journal"       # Дневник/рефлексии
+    content: "FrameOS/Content"       # Контент-план YouTube/Telegram
+    tracking: "FrameOS/Tracking"     # Трекеры (дни рождения, привычки)
+    analytics: "FrameOS/Analytics"   # Экспорт аналитики
+
+# Todoist API (получи токен: https://todoist.com/prefs/integrations)
+todoist:
+  api_token: ""  # вставь сюда
+  sync_interval_seconds: 60
+  # Проекты в Todoist, которые синхронизируем
+  project_filter: []  # пусто = все проекты
+
+# YouTube Data API v3 (Google Cloud Console)
+youtube:
+  api_key: ""
+  channel_id: ""  # твой channel ID
+
+# Telegram Bot API (для постинга/статистики)
+telegram:
+  bot_token: ""   # @hermes_5d4wvo7j6jh6ukom_bot
+  channel_id: ""  # ID канала для аналитики
+
+# ИИ для рефлексии (Hermes / OpenRouter)
+ai:
+  provider: "openrouter"  # или "hermes" если локально через llama.cpp
+  model: "nvidia/nemotron-3-ultra-550b-a55b:free"
+  api_base: "https://openrouter.ai/api/v1"
+  api_key: ""  # OpenRouter ключ
+  max_tokens: 4000
+  temperature: 0.3
+
+# PABO настройки
+pabo:
+  cycle_weeks: 12
+  reflection_day: 6  # воскресенье (0=пн, 6=вс)
+  phases:
+    - name: "planning"
+      weeks: 1
+    - name: "execution"
+      weeks: 10
+    - name: "review"
+      weeks: 1

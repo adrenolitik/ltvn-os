@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Новый контент — Frame OS{% endblock %}
+
+{% block page_title %}Новый контент{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px;">
+    <form method="post" action="/content/new">
+        <div class="card-header"><span class="card-title">Создать единицу контента</span></div>
+        <div class="card-body">
+            <div class="form-group">
+                <label class="form-label" for="platform">Платформа *</label>
+                <select id="platform" name="platform" class="form-select" required>
+                    <option value="">Выбери платформу</option>
+                    <option value="youtube">YouTube (видео)</option>
+                    <option value="shorts">YouTube Shorts</option>
+                    <option value="telegram">Telegram (пост/тред)</option>
+                    <option value="reel">Instagram Reels</option>
+                    <option value="tiktok">TikTok</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="title">Заголовок *</label>
+                <input type="text" id="title" name="title" class="form-input" required placeholder="Напр. Как я построил Frame OS за неделю">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">Описание / План / Скрипт</label>
+                <textarea id="description" name="description" class="form-textarea" placeholder="Основные тезисы, структура, ссылки на материалы..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="tags">Теги (через запятую)</label>
+                    <input type="text" id="tags" name="tags" class="form-input" placeholder="frameos, productivity, obsidian, ai">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="publish_date">Планируемая публикация</label>
+                    <input type="date" id="publish_date" name="publish_date" class="form-input">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Создать</button>
+                <a href="/content" class="btn btn-secondary">Отмена</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

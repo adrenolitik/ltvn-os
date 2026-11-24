@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Frame OS{% endblock %}</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    {% block head %}{% endblock %}
+</head>
+<body x-data="{ sidebarOpen: false, theme: localStorage.getItem('theme') || 'dark' }" 
+      x-init="document.documentElement.setAttribute('data-theme', theme); $watch('theme', v => { document.documentElement.setAttribute('data-theme', v); localStorage.setItem('theme', v); })"
+      :class="theme">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" :class="{ open: sidebarOpen }" x-transition>
+        <div class="sidebar-header">
+            <h1>Frame OS</h1>
+            <button class="btn-icon" @click="sidebarOpen = false" aria-label="Закрыть меню">×</button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-item" data-page="dashboard">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Дашборд
+            </a>
+            <a href="/cycles" class="nav-item" data-page="cycles">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Циклы (PABO)
+            </a>
+            <a href="/journal" class="nav-item" data-page="journal">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Журнал
+            </a>
+            <a href="/tasks" class="nav-item" data-page="tasks">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Задачи (Todoist)
+            </a>
+            <a href="/content" class="nav-item" data-page="content">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                Контент
+            </a>
+            <a href="/goals" class="nav-item" data-page="goals">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+                Цели
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="btn-theme" @click="theme = theme === 'dark' ? 'light' : 'dark'" title="Переключить тему">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" x-show="theme === 'dark'"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" x-show="theme === 'light'"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <span class="version">v0.1.0</span>
+        </div>
+    </aside>
+
+    <!-- Mobile sidebar toggle -->
+    <button class="sidebar-toggle" @click="sidebarOpen = true" aria-label="Открыть меню">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <!-- Main content -->
+    <main class="main-content">
+        <header class="topbar">
+            <h2>{% block page_title %}{% endblock %}</h2>
+            <div class="topbar-actions">
+                {% block topbar_actions %}{% endblock %}
+            </div>
+        </header>
+        <div class="content-area">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Toast notifications -->
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+
+    <script>
+        // HTMX + Alpine integration
+        document.addEventListener('htmx:afterSwap', () => {
+            // Re-init Alpine components if needed
+        });
+
+        // Toast helper
+        window.toast = (msg, type = 'info') => {
+            const container = document.getElementById('toasts');
+            const el = document.createElement('div');
+            el.className = `toast ${type}`;
+            el.textContent = msg;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+        };
+
+        // Active nav highlighting
+        document.addEventListener('DOMContentLoaded', () => {
+            const path = window.location.pathname;
+            document.querySelectorAll('.nav-item').forEach(a => {
+                if (path.startsWith(a.getAttribute('href')) && a.getAttribute('href') !== '/') {
+                    a.classList.add('active');
+                } else if (path === '/' && a.getAttribute('href') === '/') {
+                    a.classList.add('active');
+                }
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

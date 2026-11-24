@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Frame OS{% endblock %}
+
+{% block page_title %}Дашборд{% endblock %}
+
+{% block topbar_actions %}
+{% if cycle %}
+<a href="/cycles/{{ cycle.slug }}" class="btn btn-secondary">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Цикл {{ cycle.number }}
+</a>
+{% endif %}
+<a href="/journal/new" class="btn btn-primary">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Запись в журнал
+{% endblock %}
+
+{% block content %}
+<!-- Current Cycle Overview -->
+{% if cycle %}
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <span class="card-title">Текущий цикл: {{ cycle.title }} (№{{ cycle.number }})</span>
+        <span class="badge badge-{{ cycle.phase }}">{{ cycle.phase|capitalize }}</span>
+    </div>
+    <div class="card-body">
+        <div class="cycle-header">
+            <div class="cycle-stat">
+                <div class="cycle-stat-label">Неделя</div>
+                <div class="cycle-stat-value">{{ cycle.week }} / 12</div>
+            </div>
+            <div class="cycle-stat">
+                <div class="cycle-stat-label">Фаза</div>
+                <div class="cycle-stat-value">{{ cycle.phase|capitalize }}</div>
+            </div>
+            <div class="cycle-stat">
+                <div class="cycle-stat-label">Действий</div>
+                <div class="cycle-stat-value">{{ cycle.actions|length }}</div>
+            </div>
+            <div class="cycle-stat">
+                <div class="cycle-stat-label">До конца</div>
+                <div class="cycle-stat-value">{{ ((cycle.end_date | date_to_days) - (today | date_to_days)) if cycle.end_date else '—' }} дн.</div>
+            </div>
+        </div>
+        
+        {% if cycle.main_goal %}
+        <div style="margin-top: 16px; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius);">
+            <div style="font-size: 0.75rem; color: var(--fg-secondary); text-transform: uppercase; margin-bottom: 4px;">Главная цель</div>
+            <div style="font-weight: 500;">{{ cycle.main_goal }}</div>
+        </div>
+        {% endif %}
+        
+        <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="/cycles/{{ cycle.slug }}" class="btn btn-secondary">Открыть цикл</a>
+            <a href="/journal/new?cycle_slug={{ cycle.slug }}&week={{ cycle.week }}" class="btn btn-primary">Добавить запись</a>
+            {% if cycle.phase == "review" %}
+            <button class="btn btn-ghost" hx-post="/reflect/cycle/{{ cycle.slug }}" hx-target="#toasts" hx-swap="beforeend">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+                ИИ-рефлексия цикла
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-body" style="text-align: center; padding: 48px;">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 16px; color: var(--fg-muted); width: 48px; height: 48px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <h3 style="margin-bottom: 8px;">Нет активного цикла</h3>
+        <p style="color: var(--fg-secondary); margin-bottom: 16px;">Создай свой первый 12-недельный цикл PABO</p>
+        <a href="/cycles/new" class="btn btn-primary">Создать цикл</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Two column layout -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+
+<!-- Today's Tasks -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">Задачи на сегодня</span>
+        <span style="font-size: 0.75rem; color: var(--fg-muted);">{{ today_tasks|length }}</span>
+    </div>
+    <div class="card-body" style="padding: 0; max-height: 400px; overflow-y: auto;">
+        {% if today_tasks %}
+        {% for task in today_tasks %}
+        <div class="task-row" style="margin: 0; border-radius: 0; border-left: none; border-right: none;">
+            <input type="checkbox" class="task-checkbox" {% if task.completed %}checked{% endif %}
+                   hx-post="/tasks/{{ task._slug }}/toggle" hx-target="#toasts" hx-swap="beforeend">
+            <div class="task-content">
+                <div class="task-title {% if task.completed %}completed{% endif %}">{{ task.content }}</div>
+                <div class="task-meta">
+                    {% if task.project_id %}<span class="task-project">#{{ task.project_id[:8] }}</span>{% endif %}
+                    {% if task.due and task.due.date %}
+                    <span class="task-due {% if task.due.date < today %}overdue{% elif task.due.date == today %}today{% endif %}">
+                        📅 {{ task.due.date }}
+                    </span>
+                    {% endif %}
+                    {% if task.priority > 1 %}<span>⚡ P{{ task.priority }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <div style="padding: 12px; text-align: center; border-top: 1px solid var(--border);">
+            <a href="/tasks" class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.8rem;">Все задачи →</a>
+        </div>
+        {% else %}
+        <div style="padding: 32px; text-align: center; color: var(--fg-muted);">
+            Нет задач на сегодня 🎉
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Actions / Overdue -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">Просрочено</span>
+        <span style="font-size: 0.75rem; color: var(--danger);">{{ overdue_tasks|length }}</span>
+    </div>
+    <div class="card-body" style="padding: 0; max-height: 400px; overflow-y: auto;">
+        {% if overdue_tasks %}
+        {% for task in overdue_tasks %}
+        <div class="task-row" style="margin: 0; border-radius: 0; border-left: none; border-right: none; border-left: 3px solid var(--danger);">
+            <input type="checkbox" class="task-checkbox" {% if task.completed %}checked{% endif %}
+                   hx-post="/tasks/{{ task._slug }}/toggle" hx-target="#toasts" hx-swap="beforeend">
+            <div class="task-content">
+                <div class="task-title {% if task.completed %}completed{% endif %}">{{ task.content }}</div>
+                <div class="task-meta">
+                    <span class="task-due overdue">📅 {{ task.due.date if task.due else 'без даты' }}</span>
+                    {% if task.priority > 1 %}<span>⚡ P{{ task.priority }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div style="padding: 32px; text-align: center; color: var(--fg-muted);">
+            Нет просроченных задач ✨
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+</div>
+
+<!-- Quick Stats Row -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px;">
+    <div class="card">
+        <div class="card-body" style="text-align: center;">
+            <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent);">{{ today_tasks|selectattr('completed')|list|length }}</div>
+            <div style="font-size: 0.8rem; color: var(--fg-secondary);">Выполнено сегодня</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="text-align: center;">
+            <div style="font-size: 2.5rem; font-weight: 700; color: var(--success);">{{ today_tasks|rejectattr('completed')|list|length }}</div>
+            <div style="font-size: 0.8rem; color: var(--fg-secondary);">Осталось сделать</div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body" style="text-align: center;">
+            <div style="font-size: 2.5rem; font-weight: 700; color: var(--warning);">{{ overdue_tasks|length }}</div>
+            <div style="font-size: 0.8rem; color: var(--fg-secondary);">Просрочено</div>
+        </div>
+    </div>
+    {% if cycle %}
+    <div class="card">
+        <div class="card-body" style="text-align: center;">
+            <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent);">{{ cycle.week }}</div>
+            <div style="font-size: 0.8rem; color: var(--fg-secondary);">Неделя цикла</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Custom filter for date comparison in template
+    // (handled server-side, but keep for reference)
+</script>
+{% endblock %}

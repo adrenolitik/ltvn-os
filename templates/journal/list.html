@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Журнал — Frame OS{% endblock %}
+
+{% block page_title %}Журнал{% endblock %}
+
+{% block topbar_actions %}
+<a href="/journal/new" class="btn btn-primary">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Новая запись
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-body">
+        {% if cycle %}
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+            <div>
+                <h3 style="margin-bottom: 4px;">Активный цикл: {{ cycle.title }}</h3>
+                <span class="badge badge-{{ cycle.phase }}">{{ cycle.phase|capitalize }} • Неделя {{ cycle.week }}</span>
+            </div>
+            <a href="/cycles/{{ cycle.slug }}" class="btn btn-secondary">Открыть цикл</a>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 16px;">
+            <p style="color: var(--fg-secondary);">Нет активного цикла. <a href="/cycles/new" style="color: var(--accent);">Создать</a></p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        {% if entries %}
+        {% for entry in entries %}
+        <div class="journal-entry" style="margin: 0; border-radius: 0; border-left: none; border-right: none; border-bottom: 1px solid var(--border);">
+            <div class="journal-header">
+                <span class="journal-date">{{ entry.date }} (нед. {{ entry.week }})</span>
+                <div class="journal-metrics">
+                    {% if entry.mood is not none %}<span>😊 {{ entry.mood }}/10</span>{% endif %}
+                    {% if entry.energy is not none %}<span>⚡ {{ entry.energy }}/10</span>{% endif %}
+                    {% if entry.focus is not none %}<span>🎯 {{ entry.focus }}/10</span>{% endif %}
+                </div>
+            </div>
+            {% if entry.tags %}
+            <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
+                {% for tag in entry.tags %}<span class="journal-tag">{{ tag }}</span>{% endfor %}
+            </div>
+            {% endif %}
+            <div class="journal-content">{{ entry.content or '—' }}</div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div style="padding: 48px; text-align: center;">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 16px; color: var(--fg-muted); width: 48px; height: 48px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <h3 style="margin-bottom: 8px;">Журнал пуст</h3>
+            <p style="color: var(--fg-secondary); margin-bottom: 16px;">Заведи первую запись рефлексии</p>
+            <a href="/journal/new" class="btn btn-primary">Новая запись</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

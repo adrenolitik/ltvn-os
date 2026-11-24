@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Новый цикл — Frame OS{% endblock %}
+
+{% block page_title %}Новый цикл PABO{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px;">
+    <form method="post" action="/cycles/new">
+        <div class="card-header">
+            <span class="card-title">Создание {{ next_number }}-го 12-недельного цикла</span>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label class="form-label" for="title">Название цикла *</label>
+                <input type="text" id="title" name="title" class="form-input" required placeholder="Напр. Q1 2026: Запуск продукта">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="start_date">Дата начала *</label>
+                <input type="date" id="start_date" name="start_date" class="form-input" required value="{{ today }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="main_goal">Главная цель цикла</label>
+                <textarea id="main_goal" name="main_goal" class="form-textarea" placeholder="Одна конкретная, измеримая цель на 12 недель..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="additional_goals">Дополнительные направления (по одному на строку)</label>
+                <textarea id="additional_goals" name="additional_goals" class="form-textarea" placeholder="Напр.
+Здоровье: пробегать 30км/нед
+Обучение: пройти курс по Rust
+Финансы: отложить 20% дохода"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="hypotheses">Гипотезы для проверки (по одной на строку)</label>
+                <textarea id="hypotheses" name="hypotheses" class="form-textarea" placeholder="Напр.
+Если буду писать по 500 слов в день, то за цикл напишу черновик книги
+Если перейду на 2 приема питания, то снизятся воспаления"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="actions">Конкретные действия (по одному на строку)</label>
+                <textarea id="actions" name="actions" class="form-textarea" placeholder="Напр.
+Настроить CI/CD для проекта
+Написать 3 статьи для блога
+Провести 4 интервью с клиентами"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Создать цикл
+                </button>
+                <a href="/cycles" class="btn btn-secondary">Отмена</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

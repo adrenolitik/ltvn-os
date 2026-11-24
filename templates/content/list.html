@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Контент-план — Frame OS{% endblock %}
+
+{% block page_title %}Контент{% endblock %}
+
+{% block topbar_actions %}
+<a href="/content/new" class="btn btn-primary">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Новый контент
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Platform filter -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-body" style="padding: 16px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 0.8rem; color: var(--fg-secondary);">Платформа:</span>
+            <a href="/content" class="btn btn-ghost {% if not platform %}active{% endif %}" style="padding: 6px 12px; font-size: 0.8rem;">Все</a>
+            <a href="/content?platform=youtube" class="btn btn-ghost {% if platform == 'youtube' %}active{% endif %}" style="padding: 6px 12px; font-size: 0.8rem;">YouTube</a>
+            <a href="/content?platform=telegram" class="btn btn-ghost {% if platform == 'telegram' %}active{% endif %}" style="padding: 6px 12px; font-size: 0.8rem;">Telegram</a>
+            <a href="/content?platform=shorts" class="btn btn-ghost {% if platform == 'shorts' %}active{% endif %}" style="padding: 6px 12px; font-size: 0.8rem;">Shorts/Reels</a>
+        </div>
+    </div>
+</div>
+
+{% if platform and pipeline %}
+<!-- Kanban view for specific platform -->
+<div class="card">
+    <div class="card-header"><span class="card-title">Канбан: {{ platform|capitalize }}</span></div>
+    <div class="card-body" style="padding: 0;">
+        <div class="kanban">
+            {% for stage, items in pipeline.items() %}
+            {% if items %}
+            <div class="kanban-column">
+                <div class="kanban-header">
+                    <span class="kanban-title">{{ stage|capitalize }}</span>
+                    <span class="kanban-count">{{ items|length }}</span>
+                </div>
+                <div class="kanban-items">
+                    {% for item in items %}
+                    <div class="kanban-item">
+                        <div class="kanban-item-title">{{ item.title }}</div>
+                        <div class="kanban-item-meta">
+                            {% if item.publish_date %}📅 {{ item.publish_date }}{% endif %}
+                            {% if item.tags %}{{ item.tags|join(', ') }}{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- List view -->
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        {% if items %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Платформа</th>
+                        <th>Название</th>
+                        <th>Стадия</th>
+                        <th>Статус</th>
+                        <th>Публикация</th>
+                        <th>Теги</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td><span class="badge">{{ item.platform }}</span></td>
+                        <td style="font-weight: 500;">{{ item.title }}</td>
+                        <td><span class="badge badge-{{ item.stage }}">{{ item.stage|capitalize }}</span></td>
+                        <td>{{ item.status }}</td>
+                        <td>{{ item.publish_date or '—' }}</td>
+                        <td style="font-size: 0.75rem; color: var(--fg-muted);">{{ item.tags|join(', ') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="padding: 48px; text-align: center;">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 16px; color: var(--fg-muted); width: 48px; height: 48px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            <h3 style="margin-bottom: 8px;">Контент-план пуст</h3>
+            <p style="color: var(--fg-secondary); margin-bottom: 16px;">Добавь идеи для видео, постов, тредов</p>
+            <a href="/content/new" class="btn btn-primary">Добавить контент</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
